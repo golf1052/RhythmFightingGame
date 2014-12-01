@@ -10,71 +10,94 @@ namespace RhythmFightingGame
 {
     public class Player : Sprite
     {
-        public enum Facing
+        public enum Direction
         {
             Left,
-            Right
+            Right,
+            None
         }
-        public Facing facing;
+        public Direction facing;
+        public Direction dashingDirection;
+        float dashDistance = 500;
+        float dashSpeed = 50;
 
         bool dashing;
         Vector2 endDashPos;
 
-        public Player (Texture2D loadedTex) : base(loadedTex)
+        public Player(SpriteSheetInfo spriteSheetInfo, GameTimeWrapper gameTime) : base(spriteSheetInfo, gameTime)
         {
-            facing = Facing.Right;
+            facing = Direction.Right;
             dashing = false;
         }
 
-        public void Dash(Facing direction)
+        public void Dash(Direction direction)
         {
             if (!dashing)
             {
                 dashing = true;
-                if (direction == Facing.Left)
+                dashingDirection = direction;
+                if (direction == Direction.Left)
                 {
-                    endDashPos = new Vector2(pos.X - 300, pos.Y);
-                    vel = new Vector2(-100, 0);
+                    endDashPos = new Vector2(pos.X - dashDistance, pos.Y);
+                    vel = new Vector2(-dashSpeed, 0);
+                    if (facing == Direction.Left)
+                    {
+                        animations.currentAnimation = "moveforwards";
+                    }
+                    else if (facing == Direction.Right)
+                    {
+                        animations.currentAnimation = "movebackwards";
+                    }
                 }
-                else if (direction == Facing.Right)
+                else if (direction == Direction.Right)
                 {
-                    endDashPos = new Vector2(pos.X + 300, pos.Y);
-                    vel = new Vector2(100, 0);
+                    endDashPos = new Vector2(pos.X + dashDistance, pos.Y);
+                    vel = new Vector2(dashSpeed, 0);
+                    if (facing == Direction.Right)
+                    {
+                        animations.currentAnimation = "moveforwards";
+                    }
+                    else if (facing == Direction.Left)
+                    {
+                        animations.currentAnimation = "movebackwards";
+                    }
                 }
             }
         }
 
-        public override void Update(GameTimeWrapper gameTime, GraphicsDevice graphicsDevice)
+        public override void Update(GameTimeWrapper gameTime, GraphicsDeviceManager graphics)
         {
             if (dashing)
             {
-                if (facing == Facing.Left)
+                if (dashingDirection == Direction.Left)
                 {
                     if (pos.X <= endDashPos.X)
                     {
                         vel = Vector2.Zero;
                         dashing = false;
+                        dashingDirection = Direction.None;
                     }
                 }
-                else if (facing == Facing.Right)
+                else if (dashingDirection == Direction.Right)
                 {
                     if (pos.X >= endDashPos.X)
                     {
                         vel = Vector2.Zero;
                         dashing = false;
+                        dashingDirection = Direction.None;
                     }
                 }
             }
-            base.Update(gameTime, graphicsDevice);
+            base.Update(gameTime, graphics);
         }
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            if (facing == Facing.Left)
+            if (facing == Direction.Left)
             {
                 spriteBatch.Draw(tex, pos, null, color, rotation, origin, scale, SpriteEffects.FlipHorizontally, 0);
             }
-            else if (facing == Facing.Right)
+            else if (facing == Direction.Right)
             {
                 spriteBatch.Draw(tex, pos, null, color, rotation, origin, scale, SpriteEffects.None, 0);
             }
