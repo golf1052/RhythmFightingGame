@@ -37,6 +37,8 @@
   <ItemGroup>
     <Compile Include="Background.cs" />
     <Compile Include="BackgroundColor.cs" />
+    <Compile Include="Enemy.cs" />
+    <Compile Include="EnemyHandler.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Program.cs" />

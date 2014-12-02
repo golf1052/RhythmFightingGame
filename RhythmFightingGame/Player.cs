@@ -22,12 +22,13 @@ namespace RhythmFightingGame
         float dashSpeed = 50;
 
         bool dashing;
-        Vector2 endDashPos;
+        public Vector2 endDashPos;
 
         public Player(SpriteSheetInfo spriteSheetInfo, GameTimeWrapper gameTime) : base(spriteSheetInfo, gameTime)
         {
             facing = Direction.Right;
             dashing = false;
+            endDashPos = Vector2.Zero;
         }
 
         public void Dash(Direction direction)

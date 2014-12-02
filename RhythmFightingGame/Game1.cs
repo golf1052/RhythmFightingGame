@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using GLX;
@@ -24,6 +26,8 @@ namespace RhythmFightingGame
         public static FloatTweener colorSheetAlpha;
         Background background;
         Background foreground;
+
+        EnemyHandler enemyHandler;
 
         TextItem timeSinceLastButtonText;
         TextItem rhythmTimeText;
@@ -79,9 +83,11 @@ namespace RhythmFightingGame
             player = new Player(new SpriteSheetInfo(288, 288), mainGameTime);
             player.animations["moveforwards"] = player.animations.AddSpriteSheet(Content.Load<Texture2D>("Rob-animation-forwards"), 15, 6, 3, SpriteSheet.Direction.LeftToRight, 25, false);
             player.animations["movebackwards"] = player.animations.AddSpriteSheet(Content.Load<Texture2D>("Rob-animation-backwards"), 15, 6, 3, SpriteSheet.Direction.LeftToRight, 25, false);
+            player.animations["attack"] = player.animations.AddSpriteSheet(Content.Load<Texture2D>("rough-punch"), new SpriteSheetInfo(144, 288), 5, 5, 1, SpriteSheet.Direction.LeftToRight, 25, false);
             player.Ready(graphics);
             player.animations.active = false;
             player.pos = new Vector2(graphics.GraphicsDevice.Viewport.Width / 2, graphics.GraphicsDevice.Viewport.Height - (player.tex.Height / 2 - 27));
+            player.endDashPos = player.pos;
 
             background = new Background(Content.Load<Texture2D>("Background"));
             foreground = new Background(Content.Load<Texture2D>("Foreground"));
@@ -89,6 +95,9 @@ namespace RhythmFightingGame
             colorSheet.drawRect = new Rectangle(0, 0, graphics.GraphicsDevice.Viewport.Width, graphics.GraphicsDevice.Viewport.Height);
             colorSheet.AddColor("forward", new Color(204, 150, 41));
             colorSheet.AddColor("backward", new Color(204, 110, 41));
+
+            Texture2D enemySpriteSheet = Content.Load<Texture2D>("Enemy-A-hover");
+            enemyHandler = new EnemyHandler(graphics, new SpriteSheetInfo(450, 450), new List<Texture2D>(new Texture2D[]{enemySpriteSheet}), mainGameTime);
 
             DebugText.spriteFont = Content.Load<SpriteFont>("DebugFont");
             timeSinceLastButtonText = new TextItem(DebugText.spriteFont);
@@ -164,11 +173,12 @@ namespace RhythmFightingGame
                 player.facing = Player.Direction.Right;
             }
             
-            rhythmHandler.Update(gameTime);
             timeSinceLastButtonText.text = "Measure Time: " + rhythmHandler.timeSincePressed.TotalMilliseconds.ToString();
             rhythmTimeText.text = "Current Beat: " + rhythmHandler.rhythmTime.TotalMilliseconds.ToString();
             offBeatText.text = "Offby: " + rhythmHandler.offBeatTime.TotalMilliseconds.ToString();
+            enemyHandler.Update(gameTime, graphics, player);
             player.Update(gameTime, graphics);
+            rhythmHandler.Update(gameTime, player, enemyHandler);
             colorSheet.pos = new Vector2(player.pos.X - graphics.GraphicsDevice.Viewport.Width / 2, 0);
             colorSheetAlpha.Update(gameTime);
             colorSheet.alpha = colorSheetAlpha.Value;
@@ -193,6 +203,7 @@ namespace RhythmFightingGame
             world.Draw(background.Draw);
             world.Draw(colorSheet.DrawRect);
             world.Draw(foreground.Draw);
+            world.Draw(enemyHandler.Draw);
             world.Draw(player.Draw);
             world.Draw(DebugText.Draw);
             world.EndDraw();

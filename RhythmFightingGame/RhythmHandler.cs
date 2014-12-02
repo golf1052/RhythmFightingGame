@@ -29,28 +29,63 @@ namespace RhythmFightingGame
             waitingForPress = false;
         }
 
-        public void Update(GameTimeWrapper gameTime)
+        public void Update(GameTimeWrapper gameTime, Player player, EnemyHandler enemyHandler)
         {
             KeyboardState keyboardState = Keyboard.GetState();
             GamePadState gamePadState = GamePad.GetState(PlayerIndex.One);
+
+            Enemy closestEnemy = null;
+            float distanceFromEnemy = float.MaxValue;
+            foreach (Enemy enemy in enemyHandler.enemies)
+            {
+                if (enemy.visible)
+                {
+                    if (Math.Abs(enemy.pos.X - player.pos.X) < distanceFromEnemy)
+                    {
+                        distanceFromEnemy = Math.Abs(enemy.pos.X - player.pos.X);
+                        closestEnemy = enemy;
+                    }
+                }
+            }
 
             if (gamePadState.Buttons.X == ButtonState.Pressed && previousGamePadState.Buttons.X == ButtonState.Released ||
                 keyboardState.IsKeyDown(Keys.D1) && previousKeyboardState.IsKeyUp(Keys.D1))
             {
                 SetBeat();
-                Game1.colorSheetAlpha.Value += 0.1f;
+                player.animations.currentAnimation = "attack";
+                if (CanAttackEnemy(player, closestEnemy))
+                {
+                    if (closestEnemy.attacks[0].color == Color.Blue)
+                    {
+                        AttackedEnemy(closestEnemy, enemyHandler);
+                    }
+                }
             }
             else if (gamePadState.Buttons.Y == ButtonState.Pressed && previousGamePadState.Buttons.Y == ButtonState.Released ||
                 keyboardState.IsKeyDown(Keys.D2) && previousKeyboardState.IsKeyUp(Keys.D2))
             {
                 SetBeat();
-                Game1.colorSheetAlpha.Value += 0.1f;
+                player.animations.currentAnimation = "attack";
+                if (CanAttackEnemy(player, closestEnemy))
+                {
+                    if (closestEnemy.attacks[0].color == Color.Yellow)
+                    {
+                        AttackedEnemy(closestEnemy, enemyHandler);
+                    }
+                }
             }
             else if (gamePadState.Buttons.B == ButtonState.Pressed && previousGamePadState.Buttons.B == ButtonState.Released ||
                 keyboardState.IsKeyDown(Keys.D3) && previousKeyboardState.IsKeyUp(Keys.D3))
             {
                 SetBeat();
-                Game1.colorSheetAlpha.Value += 0.1f;
+                player.animations.currentAnimation = "attack";
+                if (CanAttackEnemy(player, closestEnemy))
+                {
+                    if (closestEnemy.attacks[0].color == Color.Red)
+                    {
+                        AttackedEnemy(closestEnemy, enemyHandler);
+                    }
+                }
             }
             else if (gamePadState.Triggers.Left > 0.5f && previousGamePadState.Triggers.Left < 0.5f ||
                 keyboardState.IsKeyDown(Keys.Left) && previousKeyboardState.IsKeyUp(Keys.Left))
@@ -83,6 +118,31 @@ namespace RhythmFightingGame
 
             previousKeyboardState = keyboardState;
             previousGamePadState = gamePadState;
+        }
+
+        bool CanAttackEnemy(Player player, Enemy enemy)
+        {
+            if (player.facing == Player.Direction.Left)
+            {
+                return enemy.pos.X - player.pos.X == -250;
+            }
+            else if (player.facing == Player.Direction.Right)
+            {
+                return enemy.pos.X - player.pos.X == 250;
+            }
+            return false;
+        }
+
+        void AttackedEnemy(Enemy closestEnemy, EnemyHandler enemyHandler)
+        {
+            Game1.colorSheetAlpha.Value += 0.1f;
+            closestEnemy.attacks.RemoveAt(0);
+            if (closestEnemy.attacks.Count == 0)
+            {
+                closestEnemy.visible = false;
+                enemyHandler.enemiesAlive--;
+                enemyHandler.enemyPositions.Remove(closestEnemy.pos.X);
+            }
         }
 
         void SetBeat()
