@@ -13,6 +13,7 @@ namespace RhythmFightingGame
         public List<Enemy> enemies;
         public HashSet<float> enemyPositions;
         public int enemiesAlive;
+        public int enemiesKilled;
 
         TimeSpan spawnTimer;
         bool justSpawned;
@@ -23,14 +24,19 @@ namespace RhythmFightingGame
             for (int i = 0; i < 10; i++)
             {
                 Enemy newEnemy = new Enemy(graphics, spriteSheetInfo, gameTime);
-                newEnemy.animations["hover"] = new SpriteSheet(spriteSheets[0], spriteSheetInfo, 8, 4, 2, SpriteSheet.Direction.LeftToRight, 500, true);
+                newEnemy.animations["hover"] = new SpriteSheet(spriteSheets[0], spriteSheetInfo, 8, 8, 1, SpriteSheet.Direction.LeftToRight, 500, true);
                 newEnemy.Ready(graphics);
                 enemies.Add(newEnemy);
             }
             enemyPositions = new HashSet<float>();
+        }
+
+        public void SetUpEnemies()
+        {
             enemiesAlive = 0;
             spawnTimer = TimeSpan.Zero;
             justSpawned = false;
+            enemiesKilled = 0;
         }
 
         public void SpawnEnemy(GraphicsDeviceManager graphics, Player player)
@@ -42,10 +48,10 @@ namespace RhythmFightingGame
                     enemiesAlive++;
                     enemy.visible = true;
                     enemy.GenerateAttacks();
-                    enemy.pos.X = player.endDashPos.X + (500 * World.random.Next(-2, 3)) + enemy.tex.Width / 2 + 25;
-                    while (enemyPositions.Contains(enemy.pos.X) || enemy.pos.X < 0 || enemy.pos.X > 4000)
+                    enemy.pos.X = player.endDashPos.X + (500 * World.random.Next(-4, 5)) + enemy.tex.Width / 2 + 138;
+                    while (enemyPositions.Contains(enemy.pos.X))
                     {
-                        enemy.pos.X = player.endDashPos.X + (500 * World.random.Next(-2, 3)) + enemy.tex.Width / 2 + 25;
+                        enemy.pos.X = player.endDashPos.X + (500 * World.random.Next(-4, 5)) + enemy.tex.Width / 2 + 138;
                     }
                     enemyPositions.Add(enemy.pos.X);
                     enemy.pos.Y = graphics.GraphicsDevice.Viewport.Height - enemy.tex.Height / 2;
@@ -60,13 +66,13 @@ namespace RhythmFightingGame
             if (justSpawned)
             {
                 spawnTimer += gameTime.ElapsedGameTime;
-                if (spawnTimer >= TimeSpan.FromSeconds(10))
+                if (spawnTimer >= TimeSpan.FromSeconds(3))
                 {
                     justSpawned = false;
                     spawnTimer = TimeSpan.Zero;
                 }
             }
-            if (enemiesAlive < 3)
+            if (enemiesAlive < Math.Min(5, 10 - enemiesKilled))
             {
                 if (!justSpawned)
                 {
@@ -77,6 +83,30 @@ namespace RhythmFightingGame
             {
                 if (enemy.visible)
                 {
+                    if (enemy.hoverUp)
+                    {
+                        if (enemy.hoverDistance == enemy.hoverMax)
+                        {
+                            enemy.hoverUp = false;
+                        }
+                        else
+                        {
+                            enemy.pos.Y -= enemy.hoverStep;
+                            enemy.hoverDistance += enemy.hoverStep;
+                        }
+                    }
+                    else
+                    {
+                        if (enemy.hoverDistance == 0)
+                        {
+                            enemy.hoverUp = true;
+                        }
+                        else
+                        {
+                            enemy.pos.Y += enemy.hoverStep;
+                            enemy.hoverDistance -= enemy.hoverStep;
+                        }
+                    }
                     enemy.Update(gameTime, graphics);
                 }
             }

@@ -38,7 +38,7 @@ namespace RhythmFightingGame
             {
                 return colors[_currentColorName];
             }
-            set
+            private set
             {
                 colors[_currentColorName] = value;
                 color = value;

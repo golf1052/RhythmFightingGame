@@ -8,25 +8,39 @@ using GLX;
 
 namespace RhythmFightingGame
 {
-    public class Enemy : Sprite
+    public class Boss : Sprite
     {
         GraphicsDeviceManager graphics;
         public List<Sprite> attacks;
-        public int hoverStep = 1;
-        public int hoverDistance = 0;
-        public int hoverMax = 100;
-        public bool hoverUp = true;
+        public bool killed;
 
-        public Enemy(GraphicsDeviceManager graphics, SpriteSheetInfo spriteSheetInfo, GameTimeWrapper gameTime) : base(spriteSheetInfo, gameTime)
+        public Boss(GraphicsDeviceManager graphics, SpriteSheetInfo spriteSheetInfo, GameTimeWrapper gameTime) : base(spriteSheetInfo, gameTime)
         {
             this.graphics = graphics;
-            this.attacks = new List<Sprite>();
+            attacks = new List<Sprite>();
+        }
+
+        public void SetUpBoss()
+        {
             visible = false;
+            animations.currentAnimation = "hover";
+            killed = false;
+        }
+
+        public void Spawn(Player player)
+        {
+            if (!visible && !killed)
+            {
+                visible = true;
+                GenerateAttacks();
+                pos.X = player.endDashPos.X + (500 * World.random.Next(-4, 5)) + tex.Width / 2 + 60;
+                pos.Y = graphics.GraphicsDevice.Viewport.Height - tex.Height / 2;
+            }
         }
 
         public void GenerateAttacks()
         {
-            int attackNumber = World.random.Next(1, 6);
+            int attackNumber = World.random.Next(6, 11);
             for (int i = 0; i < attackNumber; i++)
             {
                 int attackType = World.random.Next(1, 4);
